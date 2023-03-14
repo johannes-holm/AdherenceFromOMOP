@@ -1,2 +1,6 @@
 exportPattern("^[[:alpha:]]+")
 import(AdhereR)
+import(shiny)
+import(shinyWidgets)
+import(plotly)
+import(ggplot2)
