@@ -1,12 +1,27 @@
-#' Query to get chronic drug exposure drug events from OMOP drug_exposure table
+#' Get specific drug exposure entries for adherence calculations
 #'
-#' @param schema (string of OMOP schema, with chronic drug exposure)
 #'
-#' @return query for querysql
+#' @param connection Database connection based on individual connection details (ordinarily as conn-variable)
+#' @param schema String of OMOP schema which includes the necessary drug_exposure table from which adherence can be calculated.
+#' @param ingredients Specifies medication under observation. Uses RxNorm Ingredient concept code as acceptable parameter (Function converts drug_exposure drug_concept_id into specific ingredients which he medication consists of). By default the parameter uses ing_4_sql, which are so called mapped chronic medication ingredients but can be adjusted for preference
+#'
+#' @return Dataframe of drug_exposure entries which consists of necessary columns for adherence calculation
 #' @export
 #'
-#' @examples chronic_drug_exposure_query('ohdsi_cdm_202207')
-chronic_drug_exposure_query<-function(schema){
+#' @examples chronic_drug_exposure(connection=conn, schema='ohdsi_cdm_202207')
+#' @examples chronic_drug_exposure(connection=conn, schema='ohdsi', ingredients=c('1502905', '1580747,1503297'))
+#' @examples chronic_drug_exposure(connection=conn, schema='ohdsi_cdm_202208', ingredients = '1322184')
+chronic_drug_exposure<-function(connection, schema, ingredients = ing_4_sql){
+
+  if (length(ingredients)>1){
+    options(useFancyQuotes = FALSE)
+    ingredients<-paste(sQuote(paste0('{',ingredients,'}')), collapse=", ")
+  }
+  else if(ingredients!=ing_4_sql){
+    options(useFancyQuotes = FALSE)
+    ingredients<-paste(sQuote(paste0('{',ingredients,'}')))
+  }
+
   query <- paste0("
 select
         de.person_id,
@@ -31,8 +46,14 @@ join (
     ca on ca.package=de.drug_concept_id
 
 where c.concept_class_id like '%Drug%'
-and ca.ingredients in (",noquote(ing_4_sql),")
+and ca.ingredients in (",noquote(ingredients),")
 ;")
 
-return(query)
+df<-querySql(connection, query)
+return(df)
 }
+
+
+
+
+

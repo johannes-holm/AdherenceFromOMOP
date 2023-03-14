@@ -12,13 +12,13 @@ adherence_function(
 )
 }
 \arguments{
-\item{df}{(mandatory) - This should be the table from OMOP CDM drug_exposure with chronic medication events}
+\item{df}{- This should be the table from OMOP CDM drug_exposure with chronic medication events}
 
-\item{person_id}{(voluntary) - By default the function calculates adherence for all people in the OMOP drug_exposure, who, by definition, are chronic medication consumers. If specified the function calculates adherence for the specific person in the the dataframe. Data type numeric (example: person_id=3)}
+\item{person_id}{- By default the function calculates adherence for all people in the OMOP drug_exposure, who, by definition, are chronic medication consumers. If specified the function calculates adherence for the specific person in the the dataframe. Data type numeric (example: person_id=3)}
 
-\item{cma}{(voluntary) - By default the function calculates adherence with all different CMA algorithms (CMA1-CMA9). If specified the function can calculate adherence using only necessary algorithm. Data type string (example: cma = 'CMA4' or cma = c('CMA1', 'CMA2'))}
+\item{cma}{- By default the function calculates adherence with all different CMA algorithms (CMA1-CMA9). If specified the function can calculate adherence using only necessary algorithm. Data type string (example: cma = 'CMA4' or cma = c('CMA1', 'CMA2'))}
 
-\item{med}{(voluntary) - By default the function calculates adherence for all chronic medications (chronic medication ingredients). If specified the function can calculate adherence only for specific medication (chronic medication ingredient). Data type string (example: med='1332418'(RxNorm Ingredient id for Amlodipine) or med='19097684,1549786'(RxNorm Ingredient id for gestodene and ethinyl estradiol used in the same medication))}
+\item{med}{- By default the function calculates adherence for all chronic medications (chronic medication ingredients). If specified the function can calculate adherence only for specific medication (chronic medication ingredient). Data type string (example: med='1332418'(RxNorm Ingredient id for Amlodipine) or med='19097684,1549786'(RxNorm Ingredient id for gestodene and ethinyl estradiol used in the same medication))}
 }
 \value{
 A a list of dataframes (CMA1-CMA9) with included chronic medication consumers and their adherence to a specific medication (chronic medication ingredients). Adherence is calculated from the first event to the last with yearly calculations (first year, second year and so on). If adherence is not consistent with a year-long gap between years, function considers next adherence-year as the first again. To access a certain CMA's adherence dataframe, user has to refer the the specific CMA (example: calculated_list_of_dataframes$CMA5)
