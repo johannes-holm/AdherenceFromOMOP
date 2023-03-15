@@ -4,7 +4,13 @@
 \alias{chronic_drug_exposure}
 \title{Get specific drug exposure entries for adherence calculations}
 \usage{
-chronic_drug_exposure(connection, schema, ingredients = ing_4_sql)
+chronic_drug_exposure(
+  connection,
+  schema,
+  ingredients = ing_4_sql,
+  cohort_schema = 0,
+  cohort_id = 0
+)
 }
 \arguments{
 \item{connection}{Database connection based on individual connection details (ordinarily as conn-variable)}
@@ -12,6 +18,10 @@ chronic_drug_exposure(connection, schema, ingredients = ing_4_sql)
 \item{schema}{String of OMOP schema which includes the necessary drug_exposure table from which adherence can be calculated.}
 
 \item{ingredients}{Specifies medication under observation. Uses RxNorm Ingredient concept code as acceptable parameter (Function converts drug_exposure drug_concept_id into specific ingredients which he medication consists of). By default the parameter uses ing_4_sql, which are so called mapped chronic medication ingredients but can be adjusted for preference}
+
+\item{cohort_schema}{Possible include only certain people that exist in a specific defined cohort between a time period. Parameter cohort schema must be a string value of the database schema with the defined cohort.}
+
+\item{cohort_id}{numeric value of the defined cohort that has included person ids as well as start and end date of the cohort.}
 }
 \value{
 Dataframe of drug_exposure entries which consists of necessary columns for adherence calculation
@@ -23,4 +33,5 @@ Get specific drug exposure entries for adherence calculations
 chronic_drug_exposure(connection=conn, schema='ohdsi_cdm_202207')
 chronic_drug_exposure(connection=conn, schema='ohdsi', ingredients=c('1502905', '1580747,1503297'))
 chronic_drug_exposure(connection=conn, schema='ohdsi_cdm_202208', ingredients = '1322184')
+chronic_drug_exposure(connection=conn, schema='ohdsi_cdm_202207', cohort_schema = 'ohdsi_result_202207', cohort_id=577)
 }
