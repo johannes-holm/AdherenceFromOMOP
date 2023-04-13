@@ -9,6 +9,14 @@
 adherence_dashboard<-function(calculated_adherence_w_info){
   total<- calculated_adherence_w_info
 
+  n_fun <- function(x){
+    return(data.frame(y = median(x) , label = paste0("n=",length(x), "\n",
+                                                     "avg=", round(mean(x),4),"\n",
+                                                     "m=", round(median(x),4), "\n"
+
+    )))
+  }
+
 
   ui <- fluidPage(
 
@@ -20,7 +28,7 @@ adherence_dashboard<-function(calculated_adherence_w_info){
         3,
 
         sliderInput(
-          inputId = "slider",
+          inputId = "age_slider",
           label = "Age of patients",
           min = min(total$age),
           max = max(total$age),
@@ -53,15 +61,11 @@ adherence_dashboard<-function(calculated_adherence_w_info){
       ),
       column(
         3,
-        radioButtons(
+        checkboxGroupInput(
           "gender",
           label = "Observed gender",
-          choices = list(
-            "Male" = "M",
-            "Female" = "F",
-            "All" = "A"
-          ),
-          selected = "A"
+          choices = c("Male" = 'M', "Female"='F'),
+          selected = c('M', 'F')
         ),
       ),
       column(
@@ -84,41 +88,31 @@ adherence_dashboard<-function(calculated_adherence_w_info){
         radioButtons(
           "how_long",
           label = "How many years have people taken the medication (minimum)?",
-          choices = list(
-            "1 year" = 1,
-            "2 years" = 3,
-            "3 years" = 6,
-            "4 years" = 10,
-            "5 years" = 15,
-            "6 years" = 21,
-            "7 years" = 28,
-            "8 years" = 36
-          ),
-          selected = 1
+          choices = sapply(list(unique(total$window.ID)), sort),
+
+          selected = sapply(list(unique(total$window.ID)), sort)[1]
         )
       ),
     ),
 
     fluidRow(
-      column(5,plotlyOutput("plot"), offset=3)),
+      column(5,plotlyOutput("gender_plot"), offset=3)),
     fluidRow(
       column(5,plotOutput("plot2"), offset=3)),
     fluidRow(
-      column(10,plotlyOutput("plot3"), offset=1))
+      column(5,plotlyOutput("plot3"), offset=3)),
+    fluidRow(
+      column(5, plotOutput('adherence_change_gender'), offset = 3)),
+    fluidRow(
+      column(5, plotOutput('adherence_change_ages'), offset = 3))
   )
 
   server <- function(input, output, session) {
     digit_counts <- reactive({
-      if(input$gender == "A"){
-        p<-total%>%filter((age >= input$slider[1])&(age <= input$slider[2])& substr(ATC_CODE, 1, input$atc_level)%in%input$check2)
-        test<-p%>%group_by(PERSON_ID, ATC_CODE)%>%summarise(summa = sum(window.ID))%>%filter(summa>=input$how_long)
-        p<-merge(p, test, all=FALSE, by=c("PERSON_ID","ATC_CODE"))
-      }
-      else{
-        p<-total%>%filter((age >= input$slider[1])&(age <= input$slider[2])& substr(ATC_CODE, 1, input$atc_level) %in%input$check2 & gender == input$gender)
-        test<-p%>%group_by(PERSON_ID, ATC_CODE)%>%summarise(summa = sum(window.ID))%>%filter(summa>=input$how_long)
-        p<-merge(p, test, all=FALSE, by=c("PERSON_ID","ATC_CODE"))
-      }})
+      valitud_aastad <-total%>%filter(window.ID==input$how_long)%>%select(PERSON_ID, med_ingredients)
+      total[(total$PERSON_ID %in% valitud_aastad$PERSON_ID)&(total$med_ingredients %in% valitud_aastad$med_ingredients),]%>%filter((age >= input$age_slider[1])&(age <= input$age_slider[2])& substr(ATC_CODE, 1, input$atc_level)%in%input$check2 & gender %in% input$gender)
+
+      })
 
     # Sorting asc
     observeEvent(input$a2z, {
@@ -149,13 +143,17 @@ adherence_dashboard<-function(calculated_adherence_w_info){
       )
     })
 
-    output$plot<- renderPlotly({
-      p1<-digit_counts()%>%group_by(year=window.ID, gender=gender)%>%summarise(avg = mean(CMA))%>%
-        ggplot(aes(x=year, y =avg, group = gender, color = gender))+
-        geom_line()+
-        labs(title = "Average adherence through 7 years")+
-        scale_x_discrete(limits=c(1,2,3,4,5,6,7,8))+
-        theme(plot.title = element_text(size = 13, face = "bold"))
+    output$gender_plot<- renderPlotly({
+
+      p1<-digit_counts()%>%group_by(PERSON_ID, gender)%>%summarise(CMA = mean(CMA))%>%ggplot(aes(x=gender, y=CMA, fill=gender))+
+        geom_boxplot()+
+        stat_summary(
+          fun.data = n_fun,
+          geom = "text",
+          position = position_dodge2(preserve = "single",0.75, padding = 0.01),
+          size = 3
+        )+
+        theme(legend.position = "none")
       ggplotly(p1)
 
     })
@@ -171,15 +169,42 @@ adherence_dashboard<-function(calculated_adherence_w_info){
         theme(plot.title = element_text(size = 18, face = "bold"))
     })
     output$plot3<-renderPlotly({
-      p3<-ggplot(digit_counts()%>%group_by(vanused = AgeGroup, Year = window.ID, Gender = gender)%>%summarise(cma=mean(CMA)), aes(x=Year, y=cma, group=Gender, color=Gender))+
-        geom_line()+
-        labs(title = "CMA 3 observed by age groups through 7 years")+
-        scale_x_discrete(limits=c(1,2,3,4,5,6,7,8))+
-        facet_grid(~vanused)+
-        theme(plot.title = element_text(size = 13, face = "bold"))
+      p3<-ggplot(digit_counts()%>%group_by(Ages=AgeGroup, PERSON_ID)%>%summarise(CMA=mean(CMA)), aes(x=Ages, y=CMA, fill=Ages))+
+        geom_boxplot(alpha=0.3)+
+        stat_summary(
+          fun.data = n_fun,
+          geom = "text",
+          position = position_dodge2(preserve = "single",0.75, padding = 0.01),
+          size = 3
+        )+
+        stat_summary(fun = median,
+                     geom = "line",
+                     col='blue')+
+        theme(legend.position="none")
       ggplotly(p3)
+    })
+    output$adherence_change_gender<-renderPlot({
+      ggplot(digit_counts()%>%group_by(gender, PERSON_ID, year = window.ID)%>%summarise(avg=mean(CMA))%>%group_by(gender,year)%>%summarise(CMA=mean(avg)), aes(x=year, y=CMA, color=gender))+
+        geom_line()+
+        geom_point()+
+        geom_label_repel(aes(label = round(CMA,3)),
+                         box.padding   = 0.35,
+                         point.padding = 0.5,
+                         segment.color = 'grey50')
+    })
+
+    output$adherence_change_ages<-renderPlot({
+      ggplot(digit_counts()%>%group_by(AgeGroup, PERSON_ID, year = window.ID)%>%summarise(avg=mean(CMA))%>%group_by(Ages=AgeGroup,year)%>%summarise(CMA=mean(avg)), aes(x=year, y=CMA, color=Ages))+
+        geom_line()+
+        geom_point()+
+        geom_label_repel(aes(label = round(CMA,3)),
+                         box.padding   = 0.35,
+                         point.padding = 0.5,
+                         segment.color = 'grey50')
     })
 
   }
   return(shinyApp(ui = ui, server = server))
 }
+
+
