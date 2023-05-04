@@ -15,14 +15,14 @@ Already a pro? Just edit this README.md and make it your own. Want to make it ea
 
 ```
 cd existing_repo
-git remote add origin https://gitlab.cs.ut.ee/johanneh/adherence-from-omop.git
+git remote add origin https://gitlab.cs.ut.ee/johanneh/AdherenceFromOMOP.git
 git branch -M main
 git push -uf origin main
 ```
 
 ## Integrate with your tools
 
-- [ ] [Set up project integrations](https://gitlab.cs.ut.ee/johanneh/adherence-from-omop/-/settings/integrations)
+- [ ] [Set up project integrations](https://gitlab.cs.ut.ee/johanneh/AdherenceFromOMOP/-/settings/integrations)
 
 ## Collaborate with your team
 
