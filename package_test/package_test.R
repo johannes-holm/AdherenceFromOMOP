@@ -49,4 +49,10 @@ cma1_w_info<-add_info_to_adherence(conn, cma1, 'ohdsi_cdm_schema')
 
 
 #------------------Interactive dashboard for adherence--------------------------
-adherence_dashboard(cma1_w_info)
+adherence_dashboard(cma1_w_info)#
+
+#------------------Summarized adherence generation------------------------------
+summarized_table<-adherence_summary(cma1_w_info)
+
+#----------------------Updated dashboard with summarized info-------------------
+adherence_dashboard_summarized(summarized_table)
