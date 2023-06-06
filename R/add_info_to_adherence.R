@@ -14,8 +14,7 @@ add_info_to_adherence <- function(connection, adherence_df, schema){
   labs <- c(paste(seq(0, 79, by = 20), seq(0 + 20 - 1, 80 - 1, by = 20),sep = "-"), paste(80, "+", sep = ""))
   df_w_info<-
     merge(adherence_df, id_age_gender, by="PERSON_ID")%>%
-    filter(GENDER_CONCEPT_ID !=0)%>%
-    filter(PERSON_ID!='1e+05')%>%
+    filter(GENDER_CONCEPT_ID !=0)
     mutate(gender = case_when(GENDER_CONCEPT_ID==8532 ~ "F",
                               GENDER_CONCEPT_ID==8507 ~ "M"))%>%
     mutate(age = as.numeric(format(window.start,"%Y")) - YEAR_OF_BIRTH)%>%
