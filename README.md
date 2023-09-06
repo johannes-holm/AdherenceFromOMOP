@@ -1,3 +1,5 @@
+Johannes tõstis kõige uuema versiooni oma paketist health-informatics grupi alla (https://gitlab.cs.ut.ee/health-informatics/omop-software/adherencefromomop). Ärge kasutage siin olevat versiooni.
+
 # Adherence from OMOP
 
 Calculate adherence from OMOP CDM
